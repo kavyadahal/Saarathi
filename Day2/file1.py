@@ -15,4 +15,3 @@ name.strip().upper() #'KAVYA'
 f"Name:{name}"
 
 
-
