@@ -2,6 +2,11 @@ import json
 
 data = {"name":"Kavya","age":21} #dict
 
+print(json.dumps({1:"x"}))
+
+"""print(json.dumps({1,2}))  not serializable
+"""
+
 #indent breaks into different lines
 json_example = json.dumps(data,indent=2) #string type
 print(type(data))
