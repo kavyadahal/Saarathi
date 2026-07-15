@@ -6,10 +6,24 @@ except ValueError:
     n = 0
 
 print(n) #->0 , no crash
-def set_age(age:int)->int:
-    if age<0:
-        raise ValueError("age < 0")
-    return age
 
-try:
+def safe_int(text:str)->int:
+    try:
+        return int(text)
+    except ValueError:
+        return 0
+    
+def safe_div(a:float,b:float)->float|None:
+    try:
+        return a/b
+    except ZeroDivisionError:
+        return None
+    
+print(safe_int("42"))
+print(safe_int("abc"))
+print(safe_int(""))
+
+print(safe_div(10,2))
+print(safe_div(10,0))
+
     
