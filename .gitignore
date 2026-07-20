@@ -17,3 +17,10 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Anaconda
+.anaconda/
+anaconda_projects/
