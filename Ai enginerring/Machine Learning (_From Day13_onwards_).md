@@ -78,52 +78,32 @@ mae = mean_absol
 ![[Pasted image 20260723222358.png]]
 
 
-# EXCERSICE 1:
-
-
--Load the built-in `diabetes` dataset (features → a number). - Split 80/20 with      `random_state=42`.
-- `fit` a `LinearRegression`, `predict` on the test set.
-- Print RMSE, MAE and R². Compare to a "predict the mean" baseline.
-
 
 ```
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_diabetes
-from sklearn.metrices import(
-r2_score,
-mean_squared_error,
-mean_absolute_error
-)
 
-load_diabetes(return_X_y = True)
+# #Sometheory ----------------------------------------------
 
-X_train , X_test , y_triain , y_test = train_test_split(
-    X , y , test_size = 0.2 , random_state = 42
-)
-model = LinearRegression
-model.fit(X_train , y_train)
-pred = model.predict(X_test)
+# #Theconfusionmatrix
 
-		
+- **TP / TN** — got it right (positive / negative).
+- **FP** — false alarm. **FN** — missed it.
+- Every classification metric is built from these four.
+
+|   |   |   |
+|---|---|---|
+||Pred 0|Pred 1|
+|Actual 0|TN 39|FP 3|
+|Actual 1|FN 1|TP 71|
+
+**FP vs FN is a real-world choice.** A missed cancer (FN) is far worse than a false alarm (FP). The matrix makes that trade-off visible.
 
 
-```
-```
-Esma training garayo : 
-
-X_train , y_train : data(features) , label using model.fit(X_train , y_train)
-
-prediction for X_test data : Its output is a label( ie Y_test ) using pred = model.predict(X_test)
-
-Now check how much they match (the whole data using R2 , rmse , mae )
-
-r2  = r2.score(pred,y_test)
-rmse = np.sqrt(mean_squared_error(y_test,pred))
-```
+![[Pasted image 20260726003236.png]]
 
 
 
+
+![[Pasted image 20260726003427.png]]
 
 
 
@@ -189,19 +169,67 @@ print(scores.std())
 
 # SelectKBest and f_classif:
 
+--some features are genuinely useless noise, and feeding them to a model can hurt it. 
+--**Feature selection** is the general idea of throwing away the useless columns before training. `SelectKBest` is one specific way to do that: score every column, then keep only the `k` highest-scoring ones.
+--It needs a _scoring function_ to know what "best" means.`f_classif` is that scoring function.
+This is literally called an F-statistic: `(how far apart the class averages are) ÷ (how spread out the values are within each class)`.
 
-![[Pasted image 20260725182126.png]]Okay, imagine a classroom quiz.
+
+![[Pasted image 20260725230148.png]]
+Okay, imagine a classroom quiz.
 
 Your teacher wants to pick the **3 best study questions** to put on a practice test. But here's the sneaky mistake: she looks at **everyone's answers, including the kids who are supposed to take the test tomorrow**, and picks the questions that those exact kids already happened to get right. Then tomorrow, she gives those "best" questions as a surprise test... to the same kids whose answers she peeked at. Of course they do great! But it's not because the questions were actually good — it's because she cheated by looking at the answer sheet first.
 
 
 ```
 from sklearn.linear_model import LogisiticRegression
-from sklearn.pipeline import pipeline
-from sklearn.feature_selection import SelectKBest , f_classif
 
+from sklearn.feature_selection import SelectKBest , f_classif
 
 
 ```
 
 
+# #Pipeline :
+
+
+# Leaky order:
+
+step 1 : SelectKBest.fit(X, y) — **every** patient, before any split exists
+p3p4p6p2p1p5p7 ← peeked!p0 ← peeked!
+
+step 2 : the split into train/test finally happens — but too late, the selector already used p7 and p0's labels
+step 3 :  train and score the model — the "test" is no longer a fair, unseen test
+
+
+```
+X_sel = SelectKBest(f_classif , k=20).fit_transform(X,y) #leak!
+leaky = cross_val_score(LogisticRegression(max_iter= 1000),X_sel,y,cv=5)
+```
+
+#  fit_transform` here means: _learn which 20 columns are best, using every single patient's label — then immediately reshape every single patient's row down to just those 20 columns, right now, in this one call_
+
+--------------------------------------------------------------------------
+
+
+# the pipeline's order of operations
+
+step 1: split into train/test **first** — p7 and p0 are set aside, untouched
+
+step 2 :  pipe.fit(X_train, y_train) — SelectKBest only ever calls .fit() on the 6 train patients
+
+p3p4p6p2p1p5   p7 blocked p0 blocked
+
+step 3 : pipe.score(X_test, y_test) — p7 and p0 are seen for the very first time here, only to grade the finished model
+
+**`clf` is simply a **variable name** that stands for **classifier**
+
+```
+from sklearn.pipeline import pipeline
+pipeline = Pipeline([
+         ('select' , SelectKBest(k_classif , k = 20))
+         ('clf' , LogisticRegression(max_iter = 1000))
+])
+honest = cross_val_score(pipe , X , y , cv = 5)
+```
+# print(leaky.mean(),honest.mean()) OUTPUT : #0.860 0.4
