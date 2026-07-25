@@ -67,6 +67,7 @@ y_pred
 
 rmse = np.sqrt(mean_squared_error(y_test,y_pred))
 r2 = r2_score(y_test,y_pred)
+mae = mean_absol 
 
 
 
@@ -78,40 +79,59 @@ r2 = r2_score(y_test,y_pred)
 
 
 # EXCERSICE 1:
+
+
 -Load the built-in `diabetes` dataset (features → a number). - Split 80/20 with      `random_state=42`.
 - `fit` a `LinearRegression`, `predict` on the test set.
 - Print RMSE, MAE and R². Compare to a "predict the mean" baseline.
 
 
-The `load_diabetes()` function returns a custom scikit-learn container object. This object acts like a Python dictionary. It holds multiple arrays and metadata inside specific attributes. [[1](https://towardsdatascience.com/json-and-apis-with-python-fba329ef6ef0/)]
+```
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_diabetes
+from sklearn.metrices import(
+r2_score,
+mean_squared_error,
+mean_absolute_error
+)
+
+load_diabetes(return_X_y = True)
+
+X_train , X_test , y_triain , y_test = train_test_split(
+    X , y , test_size = 0.2 , random_state = 42
+)
+model = LinearRegression
+model.fit(X_train , y_train)
+pred = model.predict(X_test)
+
+		
+
 
 ```
-       [ load_diabetes() Object ]
-         ├── .data       ──> NumPy Array (442 x 10) [Features]
-         ├── .target     ──> NumPy Array (442,)     [Labels]
-         ├── .feature_names ──> List of 10 strings
-         └── .DESCR      ──> Full text description
+```
+Esma training garayo : 
+
+X_train , y_train : data(features) , label using model.fit(X_train , y_train)
+
+prediction for X_test data : Its output is a label( ie Y_test ) using pred = model.predict(X_test)
+
+Now check how much they match (the whole data using R2 , rmse , mae )
+
+r2  = r2.score(pred,y_test)
+rmse = np.sqrt(mean_squared_error(y_test,pred))
 ```
 
 
-# Breast cancer:
-
-Precision , recall &  F1:
-True + True -ve 
-False +ve False -ve
-
-PRECISION :
-TP/(TP+FP): Of everything you flagged positive , how much was right? Punishesh false alarms
-
-RECALL:
-TP / (TP+FN)
-
-F1:
-balance :
-harmonic mean of the two . One number when you need a single score
 
 
 
+
+
+# BREAST CANCER:
+
+
+# Decision Tree
 ```
 from sklearn.datasets import load_breast_cancer
 from sklearn.model_selection import train_test_split
@@ -143,8 +163,45 @@ OUTPUT :
 5 0.993 0.921
 None 1.0 0.912
 
+
+
 # Cross validation score :
 
 Completely removes luck from the equation : Stratified data model is obtained
+
+
+
+```
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection imoort cross_val_score
+
+X, y = load_breast_cancer(return_X_y = True)
+
+model = LogisticRegression(max_iters = 5000)
+scores = cross_val_score(model,X,y,cv=5)
+print(scores)
+print(scores.mean())
+print(scores.std())
+
+
+```
+
+# SelectKBest and f_classif:
+
+
+![[Pasted image 20260725182126.png]]Okay, imagine a classroom quiz.
+
+Your teacher wants to pick the **3 best study questions** to put on a practice test. But here's the sneaky mistake: she looks at **everyone's answers, including the kids who are supposed to take the test tomorrow**, and picks the questions that those exact kids already happened to get right. Then tomorrow, she gives those "best" questions as a surprise test... to the same kids whose answers she peeked at. Of course they do great! But it's not because the questions were actually good — it's because she cheated by looking at the answer sheet first.
+
+
+```
+from sklearn.linear_model import LogisiticRegression
+from sklearn.pipeline import pipeline
+from sklearn.feature_selection import SelectKBest , f_classif
+
+
+
+```
 
 
