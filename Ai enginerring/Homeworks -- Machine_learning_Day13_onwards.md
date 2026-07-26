@@ -158,3 +158,126 @@ Name: count, dtype: int64
 # class_weight="balanced" = pay more attention to the rare 20 spam rows if we use this in model()
 
 
+
+=---------------------------------------------------------------------------------------------------------
+# Day 14 works: 
+
+=-----------------------------------------------------------------------------------------------------------
+
+
+Excersice 1 : 
+Fit a DecisionTreeClassifier at depths 1, 2, 3, 5, and None.
+Print train score and test score for each.
+Watch the train score climb to 1.000 while the test score peaks and then falls.
+Name the best depth — the one with the highest test score and smallest gap.
+
+
+```
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import cross_val_score , train_test_split
+from sklearn.tree import DecisionTreeClassifier
+
+X,y = load_breast_cancer(return_X_y=True)
+X_train , X_test , y_train , y_test = train_test_split(
+    X , y , test_size = 0.2 , random_state=42 , stratify=y) 
+    
+for depth in [1,2,3,5,None]:
+    model = DecisionTreeClassifier(max_depth=depth , random_state=42)
+    model.fit(X_train,y_train)
+    train = model.score(X_train,y_train)
+    test = model.score(X_test,y_test)
+    print(depth,round(train,3),round(test,3))
+
+model.score(X_test, y_test)
+
+from sklearn.feature_selection import SelectKBest , f_classif
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+
+
+#Wrong: pick features using All the data then cross validate
+X_select = SelectKBest(f_classif ,k = 20).fit_transform(X,y)
+model = LogisticRegression(max_iter=5000)
+leaky = cross_val_score(model , X_select , y , cv = 5)
+#RIGHT : selection lives INSIDE THE PIPELINE , re-run per fold
+pipe = Pipeline([
+    ("select", SelectKBest(f_classif, k=20)),
+    ("clf", LogisticRegression(max_iter=5000)),
+])
+honest = cross_val_score(pipe,X,y,cv =5)
+print(leaky.mean(),honest.mean()) #0.860 0.415
+
+#OUTPUT : 0.9490451793199813 0.9490451793199813
+
+
+```
+Exercise 2 — Cross-validate Run cross_val_score(model, X, y, cv=5) on the cancer data. Print the five fold scores. Print the mean and standard deviation. Report the result as mean ± std.
+
+```
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LogisticRegression
+
+X , y = load_breast_cancer(return_X_y=True)
+model = LogisticRegression(max_iter=5000)
+score = cross_val_score(model , X , y , cv = 5)
+print(score.mean())
+print(score.std())
+
+""" OUTPIUT: 
+0.9507995652848935
+0.01804054330253301"""
+```
+
+Exercise 3 — Catch the leak Build pure-noise data: random features, random labels. Leaky: select features on all data, then cross-validate. See the inflated score. Honest: put selection inside a Pipeline, cross-validate. See ~0.50. Sit with the gap. That gap is a career's worth of avoided disasters.
+
+```
+# Data: 
+import numpy as np
+import pandas as pd
+
+# Step 1: set a seed so results are reproducible
+np.random.seed(42)
+
+# Step 2: decide the shape of the data
+n_samples = 1000     # number of rows
+n_features = 20       # number of columns
+
+# Step 3: create random features
+# Each value is drawn from a standard normal distribution (mean 0, std 1)
+X = np.random.randn(n_samples, n_features)
+
+# Step 4: create random labels
+# For binary classification: random 0s and 1s
+y = np.random.randint(0, 2, size=n_samples)
+
+# Step 5: put it in a DataFrame so it's easy to inspect
+feature_names = [f"feature_{i}" for i in range(n_features)]
+
+# Create features and labels
+df = pd.DataFrame(X, columns=feature_names)
+df["label"] = y
+
+from sklearn.feature_selection import SelectKBest , f_classif
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+
+model = LogisticRegression(max_iter=5000)
+
+X_x = SelectKBest(f_classif,k = 10).fit_transform(X,y)
+leak =cross_val_score(model , X_x , y , cv = 5) #leak
+
+from sklearn.pipeline import Pipeline
+
+
+pipe = Pipeline([
+    ('select',SelectKBest(f_classif,k = 10)),
+    ('clf',model)
+])
+honest = cross_val_score(pipe , X , y , cv =5)
+
+print(leak.mean(),honest.mean()) #0.5309999999999999 0.514
+
+
+
+```
