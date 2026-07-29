@@ -1,6 +1,7 @@
 # Virtual environment
 .venv/
 
+Ai enginerring/
 # Python cache
 __pycache__/
 *.py[cod]
@@ -11,6 +12,8 @@ __pycache__/
 
 # Environment variables
 .env
+
+.txt
 
 # VS Code
 .vscode/
