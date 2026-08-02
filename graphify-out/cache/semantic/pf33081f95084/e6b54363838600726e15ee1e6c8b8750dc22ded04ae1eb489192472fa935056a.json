@@ -1,1 +1,0 @@
-{"nodes": [{"id": "data_excersice", "label": "excersice.txt", "file_type": "document", "source_file": "data/excersice.txt", "source_location": null}], "edges": [{"source": "data_excersice", "target": "kavya_dahal", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "data/excersice.txt"}], "hyperedges": []}

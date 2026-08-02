@@ -30,4 +30,7 @@ anaconda_projects/
 
 .virtual_documents/
 
-.graphify-out/
+.graphify/
+graphify/
+
+.claude/
